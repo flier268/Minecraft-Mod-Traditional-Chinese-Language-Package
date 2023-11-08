@@ -37,28 +37,12 @@ jobs:
         run: echo "::set-output name=timestamp::$(date '+%Y%m%d%H%M%S')"
         shell: bash
 
-      - name: Create release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: "marvinpinto/action-automatic-releases@latest"
+        if: ${{ runner.os == 'Linux' }}
         with:
-          tag_name: Snapshot-${{ steps.create_timestamp.outputs.timestamp }}
-          release_name: 汉化资源包-Snapshot-${{ steps.create_timestamp.outputs.timestamp }}
-          draft: false
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
           prerelease: false
-
-      - name: Upload release assets
-        run: |
-          for /D %%V in (projects\*) do (
-            if exist "Minecraft-Mod-Language-Package-%%~nxV.zip" (
-              curl -XPOST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Content-Type: application/zip" --data-binary @"Minecraft-Mod-Language-Package-%%~nxV.zip" ${{ steps.create_release.outputs.upload_url }}?name="Minecraft-Mod-Language-Package-%%~nxV.zip"
-            )
-          )
-        shell: cmd
-
-      - name: Build Uploader
-        run: dotnet publish .\src\Uploader\Uploader.csproj -o ./ -r win-x64 -p:PublishSingeFile=true
-
-      - name: Run Uploader
-        run: .\Uploader --host="${{ secrets.SSH_IP }}" --name="${{ secrets.SSH_USER }}" --password="${{ secrets.SSH_PWD }}"
+          automatic_release_tag: Snapshot-${{ steps.create_timestamp.outputs.timestamp }}
+          title: 中文資源包-Snapshot-${{ steps.create_timestamp.outputs.timestamp }}
+          files: |
+            projects/Minecraft-Mod-Language-Package-*.zip
