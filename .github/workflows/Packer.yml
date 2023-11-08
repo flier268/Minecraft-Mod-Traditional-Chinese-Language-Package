@@ -56,4 +56,4 @@ jobs:
           automatic_release_tag: Snapshot-${{ steps.create_timestamp.outputs.timestamp }}
           title: 中文資源包-Snapshot-${{ steps.create_timestamp.outputs.timestamp }}
           files: |
-            projects/Minecraft-Mod-Language-Package-*.zip
+            Minecraft-Mod-Language-Package-*.zip
