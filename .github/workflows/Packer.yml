@@ -30,6 +30,7 @@ jobs:
             .\Packer --version="%%~nxV"
             if errorlevel 1 exit /b %errorlevel%
           )
+        shell: cmd
 
       - name: Create timestamp
         id: create_timestamp
