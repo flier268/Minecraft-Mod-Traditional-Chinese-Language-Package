@@ -11,8 +11,11 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
+      - name: Configure Git to allow longer paths
+        run: git config --system core.longpaths true
+        
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
