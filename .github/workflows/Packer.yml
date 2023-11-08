@@ -41,13 +41,13 @@ jobs:
         shell: bash
         
       - name: capture build artifacts
-        uses: actions/upload-artifact@v2.3.1
-        with:
-          name: Artifacts
-          path: |
-            **
-            !**/.git/**
-            !**/.git
+        # uses: actions/upload-artifact@v2.3.1
+        # with:
+          # name: Artifacts
+          # path: |
+            # **
+            # !**/.git/**
+            # !**/.git
           
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
