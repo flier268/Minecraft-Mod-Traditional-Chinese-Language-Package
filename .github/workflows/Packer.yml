@@ -1,0 +1,59 @@
+name: Packer
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: 
+      - 'config/packer.json'
+      - 'config/fontmap.txt'
+      - 'projects/**'
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: main
+          
+      - name: Build Packer
+        run: dotnet publish .\src\Packer\Packer.csproj -o ./ -r win-x64 -p:PublishSingleFile=true
+
+      - name: Run Packer for each version
+        run: |
+          for /D %%V in (projects\*) do (
+            .\Packer --version="%%~nxV"
+            if errorlevel 1 exit /b %errorlevel%
+          )
+
+      - name: Create timestamp
+        id: create_timestamp
+        run: echo "::set-output name=timestamp::$(date '+%Y%m%d%H%M%S')"
+        shell: bash
+
+      - name: Create release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: Snapshot-${{ steps.create_timestamp.outputs.timestamp }}
+          release_name: 汉化资源包-Snapshot-${{ steps.create_timestamp.outputs.timestamp }}
+          draft: false
+          prerelease: false
+
+      - name: Upload release assets
+        run: |
+          for /D %%V in (projects\*) do (
+            if exist "Minecraft-Mod-Language-Package-%%~nxV.zip" (
+              curl -XPOST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Content-Type: application/zip" --data-binary @"Minecraft-Mod-Language-Package-%%~nxV.zip" ${{ steps.create_release.outputs.upload_url }}?name="Minecraft-Mod-Language-Package-%%~nxV.zip"
+            )
+          )
+
+      - name: Build Uploader
+        run: dotnet publish .\src\Uploader\Uploader.csproj -o ./ -r win-x64 -p:PublishSingeFile=true
+
+      - name: Run Uploader
+        run: .\Uploader --host="${{ secrets.SSH_IP }}" --name="${{ secrets.SSH_USER }}" --password="${{ secrets.SSH_PWD }}"
