@@ -55,6 +55,7 @@ jobs:
               curl -XPOST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Content-Type: application/zip" --data-binary @"Minecraft-Mod-Language-Package-%%~nxV.zip" ${{ steps.create_release.outputs.upload_url }}?name="Minecraft-Mod-Language-Package-%%~nxV.zip"
             )
           )
+        shell: cmd
 
       - name: Build Uploader
         run: dotnet publish .\src\Uploader\Uploader.csproj -o ./ -r win-x64 -p:PublishSingeFile=true
