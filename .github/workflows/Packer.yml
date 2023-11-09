@@ -18,12 +18,27 @@ jobs:
         
       - uses: actions/checkout@v2
         with:
-          fetch-depth: 0
+          fetch-depth: 20
           ref: main
           
+      - name: Merge Chinese_cn2tw from app branch
+        run: |
+          git fetch origin app:app
+          git checkout app -- Chinese_cn2tw/  
+          
+      - name: Install Chinese_cn2tw dependencies
+        run: npm install
+        working-directory: Chinese_cn2tw
+        
+      - name: Convert zh_cn to zh_tw
+        run: npm start
+        working-directory: Chinese_cn2tw
+        
+      - name: Add zh_tw to packer.json
+        run: node updatePackerConfig.js
+        
       - name: Build Packer
         run: dotnet publish .\src\Packer\Packer.csproj -o ./ -r win-x64 -p:PublishSingleFile=true
-
       - name: Run Packer for each version
         run: |
           for /D %%V in (projects\*) do (
