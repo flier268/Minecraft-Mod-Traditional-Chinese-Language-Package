@@ -26,12 +26,14 @@ jobs:
           git fetch origin app:app
           git checkout app -- Chinese_cn2tw/  
           
+      - name: Install Chinese_cn2tw dependencies
+        run: npm install
+        working-directory: Chinese_cn2tw
+        
       - name: Convert zh_cn to zh_tw
-        run: |
-          cd Chinese_cn2tw
-          npm install
-          npm start
-        shell: cmd
+        run: npm start
+        working-directory: Chinese_cn2tw
+
       - name: Build Packer
         run: dotnet publish .\src\Packer\Packer.csproj -o ./ -r win-x64 -p:PublishSingleFile=true
       - name: Run Packer for each version
