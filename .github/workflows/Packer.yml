@@ -25,6 +25,7 @@ jobs:
         run: |
           git fetch origin app:app
           git checkout app -- Chinese_cn2tw/  
+          git checkout app -- updatePackerConfig.js
           
       - name: Install Chinese_cn2tw dependencies
         run: npm install
