@@ -8,6 +8,9 @@ on:
       - 'config/packer.json'
       - 'config/fontmap.txt'
       - 'projects/**'
+  pull_request:
+    branches: [main]
+    types: [closed]
 
 jobs:
   build:
