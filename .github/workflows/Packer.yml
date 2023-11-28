@@ -45,13 +45,11 @@ jobs:
         run: dotnet publish .\src\Packer\Packer.csproj -o ./ -r win-x64 -p:PublishSingleFile=true
       - name: Run Packer for each version
         run: |
-          for /D %%V in (projects\*) do (
-            if /I "%%~nxV" neq ".placeholder" (
-              echo Running Packer for version %%~nxV
-              .\Packer --version="%%~nxV"
+           for %%F in (config\packer\*.json) do (
+              echo Running Packer for version %%~nF
+              .\Packer --version="%%~nF"
               if errorlevel 1 exit /b %errorlevel%
-            )
-          )
+           )
         shell: cmd
 
       - name: Create timestamp
