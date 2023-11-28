@@ -31,7 +31,9 @@ jobs:
           git checkout app -- updatePackerConfig.js
           
       - name: Install Chinese_cn2tw dependencies
-        run: npm install
+        run: |
+          npm update
+          npm install
         working-directory: Chinese_cn2tw
         
       - name: Convert zh_cn to zh_tw
