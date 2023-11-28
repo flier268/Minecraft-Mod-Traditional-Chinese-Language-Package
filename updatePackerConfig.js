@@ -1,14 +1,30 @@
 const fs = require('fs');
+const path = require('path');
 
-// 讀取 packer.json 文件
-const packerConfig = JSON.parse(fs.readFileSync('config/packer.json', 'utf8'));
+// 指定目錄
+const directoryPath = path.join(__dirname, 'config', 'packer');
 
-// 修改每個配置對象，添加 "zh_tw" 到 targetLanguage 數組
-packerConfig.forEach(config => {
-  if (!config.targetLanguage.includes("zh_tw")) {
-    config.targetLanguage.push("zh_tw");
+// 讀取指定目錄下的所有文件
+fs.readdir(directoryPath, (err, files) => {
+  if (err) {
+    console.error('無法讀取目錄：', err);
+    return;
   }
-});
 
-// 將更新後的配置寫回 packer.json 文件
-fs.writeFileSync('config/packer.json', JSON.stringify(packerConfig, null, 2), 'utf8');
+  files.forEach(file => {
+    // 確保只處理 .json 文件
+    if (path.extname(file) === '.json') {
+      const filePath = path.join(directoryPath, file);
+      // 讀取 JSON 文件
+      const packerConfig = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+
+      // 檢查並添加 "zh_tw"
+      if (!packerConfig.targetLanguage.includes("zh_tw")) {
+        packerConfig.targetLanguage.push("zh_tw");
+      }
+
+      // 寫回文件
+      fs.writeFileSync(filePath, JSON.stringify(packerConfig, null, 2), 'utf8');
+    }
+  });
+});
