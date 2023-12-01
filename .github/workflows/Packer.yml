@@ -10,7 +10,7 @@ on:
       - 'projects/**'
   pull_request:
     branches: [main]
-    types: [closed]
+    types: [merged]
 
 jobs:
   build:
