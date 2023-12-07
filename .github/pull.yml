@@ -1,5 +1,5 @@
 version: "1"
 rules:
   - base: main
-    upstream: CFPAOrg/Minecraft-Mod-Language-Package:main    # change `wei` to the owner of upstream repo
+    upstream: CFPAOrg:main    # change `wei` to the owner of upstream repo
     mergeMethod: merge  # Optional, one of [none, merge, squash, rebase, hardreset], Default: none.
