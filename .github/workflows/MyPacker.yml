@@ -1,0 +1,81 @@
+name: MyPacker
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: 
+      - 'config/packer.json'
+      - 'config/fontmap.txt'
+      - 'projects/**'
+  pull_request:
+    branches: [ main ]
+    paths: 
+      - 'config/packer.json'
+      - 'config/fontmap.txt'
+      - 'projects/**'
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Configure Git to allow longer paths
+        run: git config --system core.longpaths true
+        
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 20
+          ref: main
+          
+      - name: Merge Chinese_cn2tw from app branch
+        run: |
+          git fetch origin app:app
+          git checkout app -- Chinese_cn2tw/  
+          git checkout app -- updatePackerConfig.js
+          
+      - name: Install Chinese_cn2tw dependencies
+        run: |
+          npm update
+          npm install
+        working-directory: Chinese_cn2tw
+        
+      - name: Convert zh_cn to zh_tw
+        run: npm start
+        working-directory: Chinese_cn2tw
+        
+      - name: Add zh_tw to packer.json
+        run: node updatePackerConfig.js
+        
+      - name: Build Packer
+        run: dotnet publish .\src\Packer\Packer.csproj -o ./ -r win-x64 -p:PublishSingleFile=true
+      - name: Run Packer for each version
+        run: |
+           for %%F in (config\packer\*.json) do (
+              echo Running Packer for version %%~nF
+              .\Packer --version="%%~nF"
+              if errorlevel 1 exit /b %errorlevel%
+           )
+        shell: cmd
+
+      - name: Create timestamp
+        id: create_timestamp
+        run: echo "::set-output name=timestamp::$(date '+%Y%m%d%H%M%S')"
+        shell: bash
+        
+      # - name: capture build artifacts
+        # uses: actions/upload-artifact@v2.3.1
+        # with:
+          # name: Artifacts
+          # path: |
+            # **
+            # !**/.git/**
+            # !**/.git
+          
+      - uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          prerelease: false
+          automatic_release_tag: Snapshot-${{ steps.create_timestamp.outputs.timestamp }}
+          title: 中文資源包-Snapshot-${{ steps.create_timestamp.outputs.timestamp }}
+          files: |
+            Minecraft-Mod-Language-Package-*.zip

@@ -85,7 +85,7 @@ emmmm，原理其实很简单。
 - 脚本推送回 GitHub 仓库；
 - Weblate 检测到仓库变动，自动抓取 GitHub 变动；
 - 翻译人员在 Weblate 上翻译，Weblate 自动推回到 GitHub；
-- GitHub Actions 检测到仓库变动，自动构建并打包；
+- GitHub Actions 检测到仓库变动，自動翻譯成繁體中文，自动构建并打包；
 - GitHub Actions 自动发布到 GitHub 的 Release 上，以供下载；
 
 -->
