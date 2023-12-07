@@ -9,8 +9,11 @@ on:
       - 'config/fontmap.txt'
       - 'projects/**'
   pull_request:
-    branches: [main]
-    types: [merged]
+    branches: [ main ]
+    paths: 
+      - 'config/packer.json'
+      - 'config/fontmap.txt'
+      - 'projects/**'
 
 jobs:
   build:
