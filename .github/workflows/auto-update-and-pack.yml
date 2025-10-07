@@ -95,9 +95,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: converted-language-files
-          path: |
-            Minecraft-Mod-Language-Package/projects/
-            Minecraft-Mod-Language-Package/config/
+          path: Minecraft-Mod-Language-Package/
           retention-days: 1
 
   build-packer:
@@ -120,7 +118,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: converted-language-files
-          path: Minecraft-Mod-Language-Package/
+          path: .
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -164,7 +162,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: converted-language-files
-          path: Minecraft-Mod-Language-Package/
+          path: .
 
       - name: Download Packer
         uses: actions/download-artifact@v4
