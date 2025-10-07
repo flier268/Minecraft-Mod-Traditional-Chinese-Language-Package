@@ -1,6 +1,6 @@
 # Minecraft 模組繁體中文語言包
 
-[![Auto Update](https://github.com/YOUR_USERNAME/YOUR_REPO/actions/workflows/auto-update-and-pack.yml/badge.svg)](https://github.com/YOUR_USERNAME/YOUR_REPO/actions/workflows/auto-update-and-pack.yml)
+[![Auto Update](https://github.com/flier268/Minecraft-Mod-Traditional-Chinese-Language-Package/actions/workflows/auto-update-and-pack.yml/badge.svg)](https://github.com/flier268/Minecraft-Mod-Traditional-Chinese-Language-Package/actions/workflows/auto-update-and-pack.yml)
 [![License](https://img.shields.io/badge/license-CC%20BY--NC--SA%204.0-blue.svg)](LICENSE)
 
 > 自動從 [CFPAOrg/Minecraft-Mod-Language-Package](https://github.com/CFPAOrg/Minecraft-Mod-Language-Package) 拉取簡體中文翻譯，並轉換為繁體中文的自動化專案。
@@ -34,8 +34,8 @@
 
 ```bash
 # 1. 克隆倉庫（包含子模組）
-git clone --recurse-submodules https://github.com/YOUR_USERNAME/YOUR_REPO.git
-cd YOUR_REPO
+git clone --recurse-submodules https://github.com/flier268/Minecraft-Mod-Traditional-Chinese-Language-Package.git
+cd Minecraft-Mod-Traditional-Chinese-Language-Package
 
 # 2. 更新子模組到最新版本
 cd Minecraft-Mod-Language-Package
@@ -130,9 +130,9 @@ node updatePackerConfig.js
 
 ## 📊 專案狀態
 
-![GitHub last commit](https://img.shields.io/github/last-commit/YOUR_USERNAME/YOUR_REPO)
-![GitHub release](https://img.shields.io/github/v/release/YOUR_USERNAME/YOUR_REPO)
-![GitHub downloads](https://img.shields.io/github/downloads/YOUR_USERNAME/YOUR_REPO/total)
+![GitHub last commit](https://img.shields.io/github/last-commit/flier268/Minecraft-Mod-Traditional-Chinese-Language-Package)
+![GitHub release](https://img.shields.io/github/v/release/flier268/Minecraft-Mod-Traditional-Chinese-Language-Package)
+![GitHub downloads](https://img.shields.io/github/downloads/flier268/Minecraft-Mod-Traditional-Chinese-Language-Package/total)
 
 ---
 
