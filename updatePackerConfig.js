@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 // 指定目錄
-const directoryPath = path.join(__dirname, 'config', 'packer');
+const directoryPath = path.join(__dirname, 'Minecraft-Mod-Language-Package', 'config', 'packer');
 
 // 讀取指定目錄下的所有文件
 fs.readdir(directoryPath, (err, files) => {
@@ -19,12 +19,19 @@ fs.readdir(directoryPath, (err, files) => {
       const packerConfig = JSON.parse(fs.readFileSync(filePath, 'utf8'));
 
       // 檢查並添加 "zh_tw"
-      if (!packerConfig.targetLanguage.includes("zh_tw")) {
-        packerConfig.targetLanguage.push("zh_tw");
-      }
+      if (packerConfig.base && packerConfig.base.targetLanguages) {
+        if (!packerConfig.base.targetLanguages.includes("zh_tw")) {
+          packerConfig.base.targetLanguages.push("zh_tw");
+          console.log(`已更新 ${file}: 添加 zh_tw`);
+        } else {
+          console.log(`${file}: zh_tw 已存在`);
+        }
 
-      // 寫回文件
-      fs.writeFileSync(filePath, JSON.stringify(packerConfig, null, 2), 'utf8');
+        // 寫回文件
+        fs.writeFileSync(filePath, JSON.stringify(packerConfig, null, 2), 'utf8');
+      } else {
+        console.log(`${file}: 找不到 base.targetLanguages 欄位`);
+      }
     }
   });
 });
