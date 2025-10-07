@@ -41,7 +41,11 @@ jobs:
       - name: Check if upstream has changes
         id: check-changes
         run: |
-          if git diff --quiet Minecraft-Mod-Language-Package; then
+          # 手動觸發時強制執行
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "has-changes=true" >> $GITHUB_OUTPUT
+            echo "Manual trigger - forcing execution"
+          elif git diff --quiet Minecraft-Mod-Language-Package; then
             echo "has-changes=false" >> $GITHUB_OUTPUT
             echo "No changes from upstream"
           else
