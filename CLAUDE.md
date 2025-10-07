@@ -97,11 +97,64 @@ Supported Minecraft versions (as defined in upstream workflow):
 - Character encoding is UTF-8 for all language files
 - Special chemical element names and unicode characters have specific replacement mappings in packer configs
 
-## Future Automation
+## GitHub Actions Automation
 
-This project is designed for automated execution via GitHub Actions or scheduled tasks:
-1. Scheduled pull from upstream repository
-2. Run conversion scripts
-3. Update configurations
-4. Build and package traditional Chinese resource packs
-5. Deploy to distribution platform
+### Workflow: auto-update-and-pack.yml
+
+Located at `.github/workflows/auto-update-and-pack.yml`, this workflow automates the entire update, conversion, and packaging process.
+
+**Trigger Conditions:**
+- **Schedule**: Daily at UTC 02:00 (Taiwan time 10:00)
+- **Manual**: Via GitHub Actions "Run workflow" button
+- **Push**: When tools are updated in the `app` branch
+
+**Workflow Jobs:**
+
+1. **update-and-convert** (Ubuntu)
+   - Updates Minecraft-Mod-Language-Package submodule
+   - Detects changes from upstream
+   - Merges conversion tools from `app` branch
+   - Runs Chinese_cn2tw converter
+   - Updates packer configurations
+   - Uploads converted files as artifacts
+
+2. **build-packer** (Windows)
+   - Downloads converted files
+   - Compiles the .NET packer executable
+   - Caches packer for subsequent jobs
+
+3. **pack-resources** (Windows, Matrix Strategy)
+   - Runs in parallel for all Minecraft versions
+   - Generates resource pack zip files
+   - Creates MD5 checksums
+   - Uploads artifacts for each version
+
+4. **create-release** (Ubuntu)
+   - Collects all packaged resource packs
+   - Creates a GitHub Release with timestamp tag
+   - Uploads all zip and md5 files as release assets
+   - Generates release notes with usage instructions
+
+5. **push-changes** (Ubuntu)
+   - Commits converted files back to repository
+   - Pushes to master/main branch
+
+### Branch Strategy
+
+- **master/main**: Contains the final converted zh_tw language files
+- **app**: Stores the conversion tools (Chinese_cn2tw/ and updatePackerConfig.js)
+
+The workflow merges tools from `app` branch during execution to keep the main branch clean.
+
+### Required GitHub Settings
+
+- **Actions Permissions**: Settings → Actions → General → Workflow permissions → "Read and write permissions"
+- **Submodule Configuration**: Minecraft-Mod-Language-Package must be properly configured as a git submodule
+
+### Manual Execution
+
+To manually trigger the workflow:
+1. Go to Actions tab in GitHub
+2. Select "Auto Update and Pack Traditional Chinese"
+3. Click "Run workflow" button
+4. Select branch and click "Run workflow"
