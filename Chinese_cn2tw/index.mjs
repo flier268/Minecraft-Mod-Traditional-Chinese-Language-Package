@@ -38,10 +38,10 @@ async function convertFiles(pattern, searchValue, replaceValue) {
 }
 
 await Promise.all([
-  convertFiles("../projects/**/zh_cn/**/*.{json,lang}", "zh_cn", "zh_tw"),
-  convertFiles("../projects/**/zh_cn.{json,lang}", "zh_cn", "zh_tw"),
-  convertFiles("../projects/**/zh-cn/**/*.{json,lang}", "zh-cn", "zh-tw"),
-  convertFiles("../projects/**/zh-cn.{json,lang}", "zh-cn", "zh-tw"),
+  convertFiles("../Minecraft-Mod-Language-Package/projects/**/zh_cn/**/*.{json,lang}", "zh_cn", "zh_tw"),
+  convertFiles("../Minecraft-Mod-Language-Package/projects/**/zh_cn.{json,lang}", "zh_cn", "zh_tw"),
+  convertFiles("../Minecraft-Mod-Language-Package/projects/**/zh-cn/**/*.{json,lang}", "zh-cn", "zh-tw"),
+  convertFiles("../Minecraft-Mod-Language-Package/projects/**/zh-cn.{json,lang}", "zh-cn", "zh-tw"),
 ]).then(() => {
   console.log("All conversions completed!");
 });
