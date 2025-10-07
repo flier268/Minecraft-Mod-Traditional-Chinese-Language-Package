@@ -1,0 +1,261 @@
+name: Auto Update and Pack Traditional Chinese
+
+on:
+  # 每天 UTC 2:00 執行（台灣時間早上10:00）
+  schedule:
+    - cron: '0 2 * * *'
+
+  # 允許手動觸發
+  workflow_dispatch:
+
+  # 當 app 分支的工具更新時也觸發
+  push:
+    branches: [ app ]
+    paths:
+      - 'Chinese_cn2tw/**'
+      - 'updatePackerConfig.js'
+
+jobs:
+  update-and-convert:
+    name: Update Upstream and Convert to Traditional Chinese
+    runs-on: ubuntu-latest
+    outputs:
+      has-changes: ${{ steps.check-changes.outputs.has-changes }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          submodules: false
+
+      - name: Update Minecraft-Mod-Language-Package submodule
+        run: |
+          # 初始化並更新子模組
+          git submodule update --init --remote Minecraft-Mod-Language-Package
+          cd Minecraft-Mod-Language-Package
+          git checkout main
+          git pull origin main
+          cd ..
+
+      - name: Check if upstream has changes
+        id: check-changes
+        run: |
+          if git diff --quiet Minecraft-Mod-Language-Package; then
+            echo "has-changes=false" >> $GITHUB_OUTPUT
+            echo "No changes from upstream"
+          else
+            echo "has-changes=true" >> $GITHUB_OUTPUT
+            echo "Changes detected from upstream"
+          fi
+
+      - name: Merge Chinese_cn2tw from app branch
+        if: steps.check-changes.outputs.has-changes == 'true'
+        run: |
+          git fetch origin app:app
+          git checkout app -- Chinese_cn2tw/
+          git checkout app -- updatePackerConfig.js
+
+      - name: Setup Node.js
+        if: steps.check-changes.outputs.has-changes == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Chinese_cn2tw dependencies
+        if: steps.check-changes.outputs.has-changes == 'true'
+        run: |
+          npm update
+          npm install
+        working-directory: Chinese_cn2tw
+
+      - name: Convert zh_cn to zh_tw
+        if: steps.check-changes.outputs.has-changes == 'true'
+        run: npm start
+        working-directory: Chinese_cn2tw
+
+      - name: Add zh_tw to packer config
+        if: steps.check-changes.outputs.has-changes == 'true'
+        run: node updatePackerConfig.js
+
+      - name: Commit converted files
+        if: steps.check-changes.outputs.has-changes == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Minecraft-Mod-Language-Package/
+          git commit -m "🤖 Auto update from upstream and convert to zh_tw $(date '+%Y-%m-%d %H:%M:%S')" || echo "No changes to commit"
+
+      - name: Upload converted files as artifact
+        if: steps.check-changes.outputs.has-changes == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: converted-language-files
+          path: |
+            Minecraft-Mod-Language-Package/projects/
+            Minecraft-Mod-Language-Package/config/
+          retention-days: 1
+
+  build-packer:
+    name: Build Packer
+    needs: update-and-convert
+    if: needs.update-and-convert.outputs.has-changes == 'true'
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Download converted files
+        uses: actions/download-artifact@v4
+        with:
+          name: converted-language-files
+          path: Minecraft-Mod-Language-Package/
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Build Packer
+        run: |
+          cd Minecraft-Mod-Language-Package
+          dotnet publish ./src/Packer/Packer.csproj -o ./ -r win-x64 -p:PublishSingleFile=true
+
+      - name: Upload Packer
+        uses: actions/upload-artifact@v4
+        with:
+          name: packer-executable
+          path: |
+            Minecraft-Mod-Language-Package/Packer.exe
+            Minecraft-Mod-Language-Package/git2-*.dll
+          retention-days: 1
+
+  pack-resources:
+    name: Pack Traditional Chinese Resources
+    needs: [update-and-convert, build-packer]
+    if: needs.update-and-convert.outputs.has-changes == 'true'
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        version: ["1.12.2", "1.16", "1.16-fabric", "1.18", "1.18-fabric", "1.19", "1.20", "1.20-fabric", "1.21", "1.21-fabric"]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Download converted files
+        uses: actions/download-artifact@v4
+        with:
+          name: converted-language-files
+          path: Minecraft-Mod-Language-Package/
+
+      - name: Download Packer
+        uses: actions/download-artifact@v4
+        with:
+          name: packer-executable
+          path: Minecraft-Mod-Language-Package/
+
+      - name: Run Packer for ${{ matrix.version }}
+        run: |
+          cd Minecraft-Mod-Language-Package
+          ./Packer.exe --version="${{ matrix.version }}"
+        continue-on-error: true
+
+      - name: Upload Resource Pack for ${{ matrix.version }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: Minecraft-Mod-Language-Modpack-zh_tw-${{ matrix.version }}
+          path: |
+            Minecraft-Mod-Language-Package/Minecraft-Mod-Language-Modpack-${{ matrix.version }}.zip
+            Minecraft-Mod-Language-Package/${{ matrix.version }}.md5
+        continue-on-error: true
+
+  create-release:
+    name: Create Release with Resource Packs
+    needs: [update-and-convert, pack-resources]
+    if: needs.update-and-convert.outputs.has-changes == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Create timestamp
+        id: timestamp
+        run: echo "timestamp=$(date '+%Y%m%d-%H%M%S')" >> $GITHUB_OUTPUT
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+
+      - name: Prepare release assets
+        run: |
+          mkdir -p release-assets
+          find artifacts -name "*.zip" -exec cp {} release-assets/ \;
+          find artifacts -name "*.md5" -exec cp {} release-assets/ \;
+          ls -lah release-assets/
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: zh_tw-${{ steps.timestamp.outputs.timestamp }}
+          name: 繁體中文語言包 - ${{ steps.timestamp.outputs.timestamp }}
+          body: |
+            ## 🌏 Minecraft 模組繁體中文語言包
+
+            此版本自動從 [CFPAOrg/Minecraft-Mod-Language-Package](https://github.com/CFPAOrg/Minecraft-Mod-Language-Package) 更新並轉換為繁體中文。
+
+            ### 📦 包含版本
+            - Minecraft 1.12.2
+            - Minecraft 1.16 (Forge & Fabric)
+            - Minecraft 1.18 (Forge & Fabric)
+            - Minecraft 1.19
+            - Minecraft 1.20 (Forge & Fabric)
+            - Minecraft 1.21 (Forge & Fabric)
+
+            ### 📥 使用方法
+            1. 下載對應 Minecraft 版本的 zip 檔案
+            2. 將 zip 檔案放入 Minecraft 的 `resourcepacks` 資料夾
+            3. 在遊戲中啟用該資源包
+
+            ### 🔄 更新時間
+            ${{ steps.timestamp.outputs.timestamp }}
+
+            ---
+            🤖 此版本由 GitHub Actions 自動建立
+          files: release-assets/*
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  push-changes:
+    name: Push Changes to Repository
+    needs: [update-and-convert, create-release]
+    if: needs.update-and-convert.outputs.has-changes == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download converted files
+        uses: actions/download-artifact@v4
+        with:
+          name: converted-language-files
+          path: Minecraft-Mod-Language-Package/
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Minecraft-Mod-Language-Package/
+          git commit -m "🤖 Auto update: Traditional Chinese language pack $(date '+%Y-%m-%d %H:%M:%S')" || echo "No changes to commit"
+          git push origin master || git push origin main

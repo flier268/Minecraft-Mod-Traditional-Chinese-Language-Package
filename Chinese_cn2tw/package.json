@@ -1,0 +1,17 @@
+{
+  "name": "chinese_cn2tw",
+  "version": "1.0.0",
+  "description": "Convert zh_cn to zh_tw",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.mjs",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "flier268",
+  "license": "LGPL-3.0-or-later",
+  "dependencies": {
+    "cjk-conv": "^1.2.143",
+    "glob": "^10.3.10",
+    "novel-segment": "^2.7.113"
+  }
+}
