@@ -174,13 +174,15 @@ jobs:
           path: .
 
       - name: Run Packer for ${{ matrix.version }}
-        run: ./Packer.exe --version="${{ matrix.version }}"
+        run: ..\Packer.exe --version="${{ matrix.version }}"
+        working-directory: Minecraft-Mod-Language-Package
         continue-on-error: true
 
       - name: List generated files
         run: |
           Get-ChildItem -Filter "*.zip" | Format-Table Name, Length, LastWriteTime
           Get-ChildItem -Filter "*.md5" | Format-Table Name, Length, LastWriteTime
+        working-directory: Minecraft-Mod-Language-Package
         shell: pwsh
         continue-on-error: true
 
@@ -189,8 +191,8 @@ jobs:
         with:
           name: Minecraft-Mod-Language-Modpack-zh_tw-${{ matrix.version }}
           path: |
-            Minecraft-Mod-Language-Modpack-${{ matrix.version }}.zip
-            ${{ matrix.version }}.md5
+            Minecraft-Mod-Language-Package/Minecraft-Mod-Language-Modpack-${{ matrix.version }}.zip
+            Minecraft-Mod-Language-Package/${{ matrix.version }}.md5
         continue-on-error: true
 
   create-release:
