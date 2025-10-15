@@ -141,15 +141,44 @@ jobs:
             git2-*.dll
           retention-days: 1
 
+  generate-matrix:
+    name: Generate Version Matrix
+    needs: [update-and-convert, build-packer]
+    if: needs.update-and-convert.outputs.has-changes == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          submodules: false
+
+      - name: Download converted files
+        uses: actions/download-artifact@v4
+        with:
+          name: converted-language-files
+          path: Minecraft-Mod-Language-Package
+
+      - name: Generate version matrix from packer configs
+        id: set-matrix
+        run: |
+          cd Minecraft-Mod-Language-Package/config/packer
+          # 取得所有 JSON 檔案（排除 packer-example.json）
+          versions=$(ls *.json | grep -v "packer-example.json" | sed 's/\.json$//' | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          echo "matrix={\"version\":$versions}" >> $GITHUB_OUTPUT
+          echo "Generated matrix: {\"version\":$versions}"
+
   pack-resources:
     name: Pack Traditional Chinese Resources
-    needs: [update-and-convert, build-packer]
+    needs: [update-and-convert, build-packer, generate-matrix]
     if: needs.update-and-convert.outputs.has-changes == 'true'
     runs-on: windows-latest
     strategy:
       fail-fast: false
-      matrix:
-        version: ["1.12.2", "1.16", "1.16-fabric", "1.18", "1.18-fabric", "1.19", "1.20", "1.20-fabric", "1.21", "1.21-fabric"]
+      matrix: ${{fromJson(needs.generate-matrix.outputs.matrix)}}
 
     steps:
       - name: Enable Git long paths
