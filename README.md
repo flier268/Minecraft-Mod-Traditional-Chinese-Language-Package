@@ -26,34 +26,48 @@
 
 #### 方式二：使用自動漢化更新模組
 
-安裝 [自動漢化更新](https://www.curseforge.com/minecraft/mc-mods/i18nupdatemod) 模組，可自動下載並應用最新的繁體中文翻譯。
+安裝 [自動漢化更新](https://github.com/WingChunWong/I18nUpdateMod3/tree/zh_hant) 模組，可自動下載並應用最新的繁體中文翻譯。
 
 ### 開發者
 
 #### 本地運行
 
-```bash
-# 1. 克隆倉庫（包含子模組）
+
+1. 克隆倉庫（包含子模組）
+
+```shell
 git clone --recurse-submodules https://github.com/flier268/Minecraft-Mod-Traditional-Chinese-Language-Package.git
 cd Minecraft-Mod-Traditional-Chinese-Language-Package
+```
 
-# 2. 更新子模組到最新版本
+3. 更新子模組到最新版本
+
+```shell
 cd Minecraft-Mod-Language-Package
 git checkout main
 git pull origin main
 cd ..
+```
 
-# 3. 安裝依賴
+5. 安裝依賴
+
+```shell
 cd Chinese_cn2tw
 npm install
 cd ..
+```
 
-# 4. 執行轉換
+6. 執行轉換
+
+```shell
 cd Chinese_cn2tw
 npm start
 cd ..
+```
 
-# 5. 更新打包配置
+7. 更新打包配置
+
+```shell
 node updatePackerConfig.js
 ```
 
@@ -137,3 +151,4 @@ node updatePackerConfig.js
 ---
 
 💡 如有問題或建議，歡迎在 [Issues](../../issues) 頁面提出。
+
