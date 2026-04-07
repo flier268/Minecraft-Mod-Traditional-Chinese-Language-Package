@@ -127,18 +127,18 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: '10.0.x'
 
       - name: Build Packer
-        run: dotnet publish ./Minecraft-Mod-Language-Package/src/Packer/Packer.csproj -o ./ -r win-x64 -p:PublishSingleFile=true
+        run: dotnet publish ./Minecraft-Mod-Language-Package/src/Packer/Packer.csproj -o ./build -r win-x64
 
       - name: Upload Packer
         uses: actions/upload-artifact@v4
         with:
           name: packer-executable
           path: |
-            Packer.exe
-            git2-*.dll
+            build/Packer.exe
+            build/git2-*.dll
           retention-days: 1
 
   generate-matrix:
@@ -200,10 +200,10 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: packer-executable
-          path: .
+          path: build
 
       - name: Run Packer for ${{ matrix.version }}
-        run: ..\Packer.exe --version="${{ matrix.version }}"
+        run: ..\build\Packer.exe --version="${{ matrix.version }}"
         working-directory: Minecraft-Mod-Language-Package
         continue-on-error: true
 
