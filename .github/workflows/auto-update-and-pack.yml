@@ -249,7 +249,33 @@ jobs:
       - name: Prepare release assets
         run: |
           mkdir -p release-assets
-          find artifacts -name "*.zip" -exec cp {} release-assets/ \;
+
+          regulate_file_name() {
+            local file_name="$1"
+            local normalized="${file_name//./-}"
+            normalized="${normalized/-1-12-2/}"
+
+            IFS='-' read -r -a parts <<< "$normalized"
+            local result=""
+            local part
+            for part in "${parts[@]}"; do
+              local capitalized="${part^}"
+              if [ -n "$result" ]; then
+                result+="-"
+              fi
+              result+="$capitalized"
+            done
+
+            printf '%s' "$result"
+          }
+
+          find artifacts -name "*.zip" -print0 | while IFS= read -r -d '' file; do
+            filename=$(basename "$file")
+            stem=${filename%.zip}
+            regulated=$(regulate_file_name "$stem")
+            cp "$file" "release-assets/${regulated}.zip"
+          done
+
           find artifacts -name "*.md5" -exec cp {} release-assets/ \;
           ls -lah release-assets/
 
