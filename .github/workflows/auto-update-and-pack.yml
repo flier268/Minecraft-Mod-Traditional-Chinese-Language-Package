@@ -229,11 +229,17 @@ jobs:
     needs: [update-and-convert, pack-resources]
     if: needs.update-and-convert.outputs.has-changes == 'true'
     runs-on: ubuntu-latest
+    outputs:
+      tag_name: ${{ steps.release-meta.outputs.tag_name }}
 
     steps:
       - name: Create timestamp
         id: timestamp
         run: echo "timestamp=$(date '+%Y%m%d-%H%M%S')" >> $GITHUB_OUTPUT
+
+      - name: Set release metadata
+        id: release-meta
+        run: echo "tag_name=zh_tw-${{ steps.timestamp.outputs.timestamp }}" >> $GITHUB_OUTPUT
 
       - name: Download all artifacts
         uses: actions/download-artifact@v4
@@ -250,7 +256,7 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: zh_tw-${{ steps.timestamp.outputs.timestamp }}
+          tag_name: ${{ steps.release-meta.outputs.tag_name }}
           name: 繁體中文語言包 - ${{ steps.timestamp.outputs.timestamp }}
           body: |
             ## 🌏 Minecraft 模組繁體中文語言包
@@ -280,6 +286,60 @@ jobs:
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  update-index:
+    name: Update Version Index
+    needs: [update-and-convert, create-release]
+    if: needs.update-and-convert.outputs.has-changes == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          submodules: false
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Prepare index branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          if git ls-remote --exit-code --heads origin index; then
+            git fetch origin index:index
+            git switch index
+          else
+            git switch --orphan index
+            find . -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {} +
+          fi
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+
+      - name: Generate version-index.json
+        run: |
+          TAG='${{ needs.create-release.outputs.tag_name }}'
+          find artifacts -name 'Minecraft-Mod-Language-Modpack-*.zip' -printf '%f\n' \
+            | sed -E 's/^Minecraft-Mod-Language-Modpack-(.+)\.zip$/\1/' \
+            | sort -u \
+            | jq -Rn --arg tag "$TAG" '[inputs | select(length > 0)] | map({key: ., value: $tag}) | from_entries' \
+            > version-index.json
+
+          cat version-index.json
+
+      - name: Commit and push index
+        run: |
+          git add version-index.json
+
+          if git diff --staged --quiet; then
+            echo "No index changes to commit"
+          else
+            git commit -m "chore(index): 更新版本索引"
+            git push origin index
+          fi
 
   push-changes:
     name: Push Changes to Repository
