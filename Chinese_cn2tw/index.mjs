@@ -3,6 +3,7 @@ import { glob } from "glob";
 import { promises as fs } from "fs";
 import path from "path";
 import Segment from "novel-segment";
+import { customMap } from "./mapping.mjs";
 
 var segment = new Segment({
   autoCjk: true,
@@ -18,7 +19,9 @@ var segment = new Segment({
 segment.useDefault();
 // 开始分词
 var convert = (str) => {
-  return cn2tw_min(segment.doSegment(str, { simple: true }).join(""));
+  return segment.doSegment(str, { simple: true })
+    .map(s => cn2tw_min(customMap((s)))) // 先套用自定義修正，再轉繁體
+    .join("");
 };
 
 async function convertFiles(pattern, searchValue, replaceValue) {

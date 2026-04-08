@@ -10,8 +10,8 @@
   "author": "flier268",
   "license": "LGPL-3.0-or-later",
   "dependencies": {
-    "cjk-conv": "^1.2.143",
-    "glob": "^10.3.10",
-    "novel-segment": "^2.7.113"
+    "cjk-conv": "^1.2.150",
+    "glob": "^13.0.6",
+    "novel-segment": "^2.7.121"
   }
 }
