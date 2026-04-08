@@ -24,13 +24,13 @@ var convert = (str) => {
     .join("");
 };
 
-async function convertFiles(pattern, searchValue, replaceValue) {
+async function convertFiles(pattern, fileNameSearchValue, fileNameReplaceValue) {
   try {
     const files = await glob(pattern);
     for (const file of files) {
       const cn = await fs.readFile(file, "utf8");
       const tw = convert(cn);
-      const filename_new = file.replace(searchValue, replaceValue);
+      const filename_new = file.replace(fileNameSearchValue, fileNameReplaceValue);
       await fs.mkdir(path.dirname(filename_new), { recursive: true });
       await fs.writeFile(filename_new, tw);
       console.log(`Add file ${filename_new}`);
@@ -45,6 +45,7 @@ await Promise.all([
   convertFiles("../Minecraft-Mod-Language-Package/projects/**/zh_cn.{json,lang}", "zh_cn", "zh_tw"),
   convertFiles("../Minecraft-Mod-Language-Package/projects/**/zh-cn/**/*.{json,lang}", "zh-cn", "zh-tw"),
   convertFiles("../Minecraft-Mod-Language-Package/projects/**/zh-cn.{json,lang}", "zh-cn", "zh-tw"),
+  convertFiles("../Minecraft-Mod-Language-Package/projects/**/pack.mcmeta", "zh-cn", "zh-tw"),
 ]).then(() => {
   console.log("All conversions completed!");
 });
